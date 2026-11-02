@@ -1,4 +1,4 @@
-name: rpr
+name: Reapr mutation testing
 description: Reapr (rpr) mutation testing scoped to your pull request diff.
 author: reapr-corp
 branding:
