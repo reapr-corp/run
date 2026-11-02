@@ -91,5 +91,12 @@ run $'stryker.api.config.mjs\nstryker.docs.config.mjs'
 [ "$rc" = 0 ]
 out 'passed=true'
 
+# Release resolution: pinned versions use the rpr-v<version> tags (reapr-corp/reapr#18).
+res() { REAPR_VERSION="$1" bash ../resolve-release.sh; }
+[ "$(res latest)" = "$(printf 'url=https://github.com/reapr-corp/reapr/releases/latest/download\ntag=')" ]
+[ "$(res 0.2.0)" = "$(printf 'url=https://github.com/reapr-corp/reapr/releases/download/rpr-v0.2.0\ntag=rpr-v0.2.0')" ]
+[ "$(res v0.2.0)" = "$(res 0.2.0)" ]
+if res '1;rm' >/dev/null 2>&1; then echo "invalid version accepted"; exit 1; fi
+
 [ "${SHOW:-}" = "" ] || cat "$t/three.md"
 echo ok

@@ -79,19 +79,7 @@ runs:
           echo "::error title=Reapr::Set either 'config' (one engine config) or 'configs' (one per line), not both."
           exit 2
         fi
-        repo=https://github.com/reapr-corp/reapr/releases
-        tag=
-        case "$REAPR_VERSION" in
-          latest) url="$repo/latest/download" ;;
-          *)
-            if ! printf '%s' "$REAPR_VERSION" | grep -Eq '^v?[0-9]+\.[0-9]+\.[0-9]+([-+][0-9A-Za-z.-]+)?$'; then
-              echo "::error title=Reapr::Invalid 'version' input: '$REAPR_VERSION' (expected latest or X.Y.Z)."
-              exit 2
-            fi
-            tag="v${REAPR_VERSION#v}"
-            url="$repo/download/$tag" ;;
-        esac
-        printf 'url=%s\ntag=%s\n' "$url" "$tag" >> "$GITHUB_OUTPUT"
+        bash "$GITHUB_ACTION_PATH/resolve-release.sh" >> "$GITHUB_OUTPUT"
 
     - name: Install rpr
       shell: bash
