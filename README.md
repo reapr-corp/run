@@ -108,6 +108,14 @@ For example, the scores per config: `jq -r '.[] | "\(.config) \(.result.score)"'
 | 1 | Score below `min-score`, or the engine's own threshold failed. With `configs`: at least one config failed and none errored. |
 | 2 | Error (not a Linux runner, no base, `config` and `configs` both set, install failure, no engine detected, engine crash, ...). With `configs`: at least one config errored. |
 
+## Issues and questions
+
+This repository has no issue tracker. Report bugs with the
+[Reapr bug form](https://github.com/reapr-corp/reapr/issues/new?template=bug_report.yml) (choose
+"GitHub Action" as the component) and ask questions in
+[Reapr Discussions](https://github.com/reapr-corp/reapr/discussions). Fixes made here reference the issue
+there.
+
 ## License
 
 MIT
