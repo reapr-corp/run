@@ -14,6 +14,9 @@ jq 'del(.run_dir)' empty.json > "${TMPDIR:-/tmp}/rpr-no-run-dir.json"
 bash $s "${TMPDIR:-/tmp}/rpr-no-run-dir.json" 0 | grep -qxF 'run: `1793640100-4243`'
 bash $s error.json 2 | grep -qF 'no mutation engine detected'
 bash $s error.json 2 | grep -qF '## rpr: error'
+# The job-log line: a detected config (no --config) and a --min-score failure.
+[ "$(jq -c '{config: null, exit_code: 1, result: (.passed = false | .min_score = 80)}' pass.json | bash $s --line)" = \
+  'rpr: score 72.73% (14 killed, 1 survived, 1 no coverage) — failed: below min score 80' ]
 echo 'not json' > "${TMPDIR:-/tmp}/rpr-bad.json"
 bash $s "${TMPDIR:-/tmp}/rpr-bad.json" 2 | grep -qF 'exited with code 2'
 
@@ -38,8 +41,9 @@ run() { # run <configs> [config]: exit code in $rc, summary in $t/summary.md, ou
   : > "$t/out"
   rc=0
   REAPR_CONFIGS=$1 REAPR_CONFIG=${2:-} REAPR_BASE=main REAPR_MIN_SCORE='' FIXTURES=$PWD PATH="$t/bin:$PATH" \
-    RUNNER_TEMP=$t GITHUB_OUTPUT=$t/out GITHUB_STEP_SUMMARY=$t/summary.md bash ../run.sh > /dev/null || rc=$?
+    RUNNER_TEMP=$t GITHUB_OUTPUT=$t/out GITHUB_STEP_SUMMARY=$t/summary.md bash ../run.sh > "$t/log" || rc=$?
 }
+logs() { grep -qxF "$1" "$t/log" || { echo "missing in log: $1" >&2; cat "$t/log" >&2; exit 1; }; }
 has() { grep -qxF "$1" "$t/summary.md" || { echo "missing in summary: $1" >&2; cat "$t/summary.md" >&2; exit 1; }; }
 hasnt() { if grep -qF "$1" "$t/summary.md"; then echo "unexpected in summary: $1" >&2; exit 1; fi; }
 out() { grep -qxF "$1" "$t/out" || { echo "missing in outputs: $1" >&2; cat "$t/out" >&2; exit 1; }; }
@@ -48,6 +52,7 @@ out() { grep -qxF "$1" "$t/out" || { echo "missing in outputs: $1" >&2; cat "$t/
 run '' stryker.api.config.mjs
 [ "$rc" = 0 ]
 has '## rpr mutation score: 72.73%'
+logs 'stryker.api.config.mjs: score 72.73% (14 killed, 1 survived, 1 no coverage) — passed'
 out 'score=72.72727272727273'
 out 'passed=true'
 out 'run-id=1793640000-4242'
@@ -65,6 +70,8 @@ has '### `stryker.api.config.mjs`: 2 survivors'
 has '### `stryker.web.config.mjs`: 3 survivors'
 has '| `packages/web/src/form.ts:12:5` | EqualityOperator | `a <= b` | Survived |'
 hasnt '### `stryker.docs.config.mjs`'
+logs 'stryker.docs.config.mjs: nothing to mutate'
+logs 'stryker.web.config.mjs: score 40.00% (2 killed, 2 survived, 1 no coverage) — failed: engine threshold'
 hasnt '### Errors'
 out 'score='
 out 'passed=false'
@@ -84,6 +91,8 @@ has '`stryker.broken.config.mjs` (exit code 2):'
 has 'no mutation engine detected in /work/app (looked for stryker.config.*)'
 has '`stryker.crash.config.mjs` (exit code 3):'
 has 'rpr exited with code 3 and wrote no JSON report. See the step log.'
+logs 'stryker.broken.config.mjs: error: no mutation engine detected in /work/app (looked for stryker.config.*)'
+logs 'stryker.crash.config.mjs: error: rpr exited with code 3 and wrote no JSON report. See the step log.'
 out 'passed=false'
 
 # All pass: exit 0.

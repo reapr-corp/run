@@ -36,6 +36,8 @@ for cfg in "${cfgs[@]}"; do
     result: (($raw | try fromjson catch null) | if type == "object" then .
       else {error: "rpr exited with code \($code) and wrote no JSON report. See the step log."} end)
   }' >> "$dir/results.jsonl"
+  # The result in the job log too, readable without opening the summary.
+  tail -n 1 "$dir/results.jsonl" | bash "$here/summary.sh" --line
 
   case $code in 0 | 1) rc=$code ;; *) rc=2 ;; esac
   [ "$rc" -le "$worst" ] || worst=$rc

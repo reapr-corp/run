@@ -3,6 +3,9 @@
 GitHub Action for [Reapr](https://github.com/reapr-corp/reapr): mutation testing scoped to the pull request diff.
 Installs the `rpr` release binary, runs `rpr run --diff origin/<base> --json` (once, or once per engine config),
 writes a job summary (score, counts, survivors, warnings) and exits with rpr's exit code.
+The step log also gets one plain line per config with its result, for example
+`stryker.api.config.mjs: score 94.12% (32 killed, 2 survived) — passed`, `... : nothing to mutate`,
+`... — failed: engine threshold` or `...: error: <message>`.
 
 ## Requirements
 

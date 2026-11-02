@@ -2,6 +2,7 @@
 # Render a GitHub step summary (markdown, stdout) from `rpr run --json` output.
 # Usage: summary.sh <result.json> <rpr exit code>   one run
 #        summary.sh --aggregate <results.json>      several runs: array of {config, exit_code, result} (run.sh)
+#        summary.sh --line < <entry.json>           one plain log line for one {config, exit_code, result}
 set -euo pipefail
 
 # shellcheck disable=SC2016 # a jq program: $ and backticks are jq's, not the shell's
@@ -22,6 +23,20 @@ lib='
     "";
   def warning_list: (.warnings[] | "- \(cell)"), "";
   def run_line: "run: `\(.run_dir // .run_id | cell)`";
+
+  # One {config, exit_code, result} as one plain line for the job log.
+  def log_line:
+    (.config // "rpr") as $cfg | .result
+    | "\($cfg): " + if has("error") then "error: \(errtext | gsub("\n"; " "))"
+      elif .score == null then "nothing to mutate"
+      else (.counts // {}) as $n
+        | "score \(.score | pct) (\($n.killed // 0) killed, \($n.survived // 0) survived"
+          + (if ($n.no_coverage // 0) > 0 then ", \($n.no_coverage) no coverage" else "" end)
+          + (if ($n.timeout // 0) > 0 then ", \($n.timeout) timeout" else "" end)
+          + ") — "
+          + (if .passed then "passed" elif .engine_gate_failed then "failed: engine threshold"
+             else "failed: below min score \(.min_score)" end)
+      end;
 
   # One result, as its own summary.
   def single($code):
@@ -83,6 +98,10 @@ lib='
        else empty end);
 '
 
+if [ "${1:-}" = --line ]; then
+  jq -r "$lib log_line"
+  exit 0
+fi
 if [ "${1:-}" = --aggregate ]; then
   jq -r "$lib aggregate" "$2"
   exit 0
