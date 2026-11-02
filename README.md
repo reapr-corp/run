@@ -108,6 +108,12 @@ For example, the scores per config: `jq -r '.[] | "\(.config) \(.result.score)"'
 | 1 | Score below `min-score`, or the engine's own threshold failed. With `configs`: at least one config failed and none errored. |
 | 2 | Error (not a Linux runner, no base, `config` and `configs` both set, install failure, no engine detected, engine crash, ...). With `configs`: at least one config errored. |
 
+## Telemetry
+
+rpr sends one anonymous usage event per run ([TELEMETRY.md](https://github.com/reapr-corp/reapr/blob/main/TELEMETRY.md)).
+The action sets `RPR_VIA_ACTION=1` for rpr, so the event says it came through this action (`via_action: true`);
+nothing else is added. Turn telemetry off with `DO_NOT_TRACK: 1` in the job's `env`.
+
 ## Issues and questions
 
 This repository has no issue tracker. Report bugs with the

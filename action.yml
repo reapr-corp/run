@@ -132,4 +132,6 @@ runs:
         REAPR_MIN_SCORE: ${{ inputs.min-score }}
         REAPR_CONFIG: ${{ inputs.config }}
         REAPR_CONFIGS: ${{ inputs.configs }}
+        # Telemetry: marks the run as made through this action (`via_action`). Not an opt-out.
+        RPR_VIA_ACTION: '1'
       run: bash "$GITHUB_ACTION_PATH/run.sh"
